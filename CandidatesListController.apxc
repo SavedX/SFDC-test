@@ -22,7 +22,7 @@ public class CandidatesListController {
             try {
 	        // update Candidate's status to Disqualified
                 List<Candidate__c>  candidates = [SELECT Id, Status__c FROM Candidate__c WHERE Id IN :candidateIds];
-                for(Candidate__c c : candidates){
+                for (Candidate__c c : candidates) {
                     c.Status__c = 'Disqualified';
                 }
                 update candidates;
