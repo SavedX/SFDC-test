@@ -1,0 +1,60 @@
+public class CandidatesListController {
+
+    private final Vacancy__c currentRecord;
+    private String vacancyId;  
+    public List<wrapper> wrapperCandidatesList {get; set;}
+ 
+    public CandidatesListController(ApexPages.StandardController stdController) {
+        this.currentRecord = (Vacancy__c)stdController.getRecord();     
+        vacancyId = currentRecord.Id;
+        wrapperCandidatesList(vacancyId);
+    }
+
+    public PageReference rejectCandidate() {
+        List<String> candidateIds = new List<String>();  
+        for (Integer i=0; i<this.wrapperCandidatesList.size(); i++) {            
+            if (true == wrapperCandidatesList[i].IsSelected) {                             
+                candidateIds.add(wrapperCandidatesList[i].vacCandidate.Candidate__c);              
+            }
+        }
+          
+        if (candidateIds.size() > 0) {    
+            try {
+				        // update Candidate's status to Disqualified
+                List<Candidate__c>  candidates = [SELECT Id, Status__c FROM Candidate__c WHERE Id IN :candidateIds];
+                for(Candidate__c c : candidates){
+                    c.Status__c = 'Disqualified';
+                }
+                update candidates;
+                        
+                // delete relation from junction table
+                List<Vacancy_Candidate__c> vacCandidates = [SELECT Id FROM Vacancy_Candidate__c WHERE Vacancy__c =: vacancyId AND Candidate__c IN :candidateIds];
+                delete vacCandidates;                
+            } catch(DmlException e) {
+                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, e.getMessage()));
+    		        System.debug('An unexpected error has occurred: ' + e.getMessage());
+			      }
+        }      
+        wrapperCandidatesList(vacancyId);
+
+        return null;    	
+    }
+    
+    public List<wrapper> wrapperCandidatesList(String vacancyId) {
+        wrapperCandidatesList = new List<wrapper>();       
+        for (Vacancy_Candidate__c v:[SELECT Vacancy__c, Candidate__c, Candidate__r.FirstName__c, Candidate__r.LastName__c, Candidate__r.Salary__c FROM Vacancy_Candidate__c WHERE Vacancy__c =: vacancyId AND Candidate__r.Status__c != 'Disqualified']) {   
+        	wrapperCandidatesList.add(new wrapper(v));
+        }      
+        return wrapperCandidatesList;
+    }
+    
+    public class wrapper {      
+        public Vacancy_Candidate__c vacCandidate {get; set;}
+        public boolean IsSelected {get; set;}
+    
+        public wrapper(Vacancy_Candidate__c v){
+            vacCandidate = v;
+            IsSelected = false;
+        }
+    }       
+}
