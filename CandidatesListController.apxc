@@ -52,7 +52,7 @@ public class CandidatesListController {
         public Vacancy_Candidate__c vacCandidate {get; set;}
         public boolean IsSelected {get; set;}
     
-        public wrapper(Vacancy_Candidate__c v){
+        public wrapper(Vacancy_Candidate__c v) {
             vacCandidate = v;
             IsSelected = false;
         }
