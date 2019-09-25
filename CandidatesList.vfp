@@ -1,0 +1,20 @@
+<apex:page standardController="Vacancy__c" extensions="CandidatesListController" >
+    <apex:form id="rejectCandidateForm" >       
+        <apex:outputPanel rendered="{! wrapperCandidatesList.size = 0 }" >
+            <apex:pageMessage summary="Vacancy has no candidates" severity="info" rendered="{! wrapperCandidatesList.size=0}"/>
+        </apex:outputPanel>
+        <apex:outputPanel rendered="{! wrapperCandidatesList.size > 0 }">
+            <apex:pageBlock >
+                <apex:pageBlockTable value="{! wrapperCandidatesList }" var="candidate">                
+                    <apex:column ><apex:inputCheckbox value="{! candidate.IsSelected }" id="InputId"/></apex:column>            
+                    <apex:column value="{! candidate.vacCandidate.Candidate__r.FirstName__c }"/>
+                    <apex:column value="{! candidate.vacCandidate.Candidate__r.LastName__c }"/>            
+                    <apex:column value="{! candidate.vacCandidate.Candidate__r.Salary__c }"/>  
+                </apex:pageBlockTable>  
+                <apex:pageBlockButtons >
+                    <apex:commandButton value="Reject Candidate" action="{! rejectCandidate}" reRender="rejectCandidateForm"/>
+                </apex:pageBlockButtons>
+            </apex:pageBlock>
+        </apex:outputPanel>       
+    </apex:form>
+</apex:page>
