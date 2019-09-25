@@ -20,7 +20,7 @@ public class CandidatesListController {
           
         if (candidateIds.size() > 0) {    
             try {
-				        // update Candidate's status to Disqualified
+	        // update Candidate's status to Disqualified
                 List<Candidate__c>  candidates = [SELECT Id, Status__c FROM Candidate__c WHERE Id IN :candidateIds];
                 for(Candidate__c c : candidates){
                     c.Status__c = 'Disqualified';
@@ -32,8 +32,8 @@ public class CandidatesListController {
                 delete vacCandidates;                
             } catch(DmlException e) {
                 ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, e.getMessage()));
-    		        System.debug('An unexpected error has occurred: ' + e.getMessage());
-			      }
+    		System.debug('An unexpected error has occurred: ' + e.getMessage());
+	    }
         }      
         wrapperCandidatesList(vacancyId);
 
@@ -43,7 +43,7 @@ public class CandidatesListController {
     public List<wrapper> wrapperCandidatesList(String vacancyId) {
         wrapperCandidatesList = new List<wrapper>();       
         for (Vacancy_Candidate__c v:[SELECT Vacancy__c, Candidate__c, Candidate__r.FirstName__c, Candidate__r.LastName__c, Candidate__r.Salary__c FROM Vacancy_Candidate__c WHERE Vacancy__c =: vacancyId AND Candidate__r.Status__c != 'Disqualified']) {   
-        	wrapperCandidatesList.add(new wrapper(v));
+            wrapperCandidatesList.add(new wrapper(v));
         }      
         return wrapperCandidatesList;
     }
