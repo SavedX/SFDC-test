@@ -1,0 +1,84 @@
+@isTest
+private class TestCandidatesListController {
+         
+    @isTest
+    private static void rejectCandidate() {
+        List<String> selectedCandidates = new List<String>();
+		
+        Vacancy__c vacancy = [SELECT Title__c FROM Vacancy__c WHERE Title__c = 'TestVacancy0' LIMIT 1];
+        String vacancyId = vacancy.Id;
+
+        Candidate__c[] candidates = [SELECT FirstName__c FROM Candidate__c WHERE FirstName__c LIKE 'TestCandidate%' AND Status__c != 'Disqualified' LIMIT 2];
+
+        for (Candidate__c candidate : candidates) {
+            selectedCandidates.add(candidate.Id);
+        }
+
+        PageReference pref = new PageReference('/' + vacancyId);
+        pref.getParameters().put('id', vacancyId);
+        Test.setCurrentPage(pref);
+
+        ApexPages.StandardController stdCtr = new ApexPages.StandardController(vacancy);
+        CandidatesListController candidatesListController = new CandidatesListController(stdCtr);
+        
+        candidatesListController.rejectCandidate();
+        Vacancy_Candidate__c[] vacancyCandidatess = [
+                SELECT Id
+                FROM Vacancy_Candidate__c
+                WHERE Vacancy__c = :vacancyId
+        ];
+
+        System.assertEquals(1, vacancyCandidatess.size());
+        
+        candidatesListController.candidateIds = selectedCandidates;
+        candidatesListController.rejectCandidate();
+
+        Vacancy_Candidate__c[] vacancyCandidates = [
+                SELECT Id
+                FROM Vacancy_Candidate__c
+                WHERE Vacancy__c = :vacancyId
+        ];
+
+        System.assertEquals(0, vacancyCandidates.size());
+
+        Candidate__c[] candidatesDisqualified = [SELECT FirstName__c FROM Candidate__c WHERE Id IN :selectedCandidates AND FirstName__c LIKE 'TestCandidate%' AND Status__c = 'Disqualified'];
+        System.assertEquals(2, candidatesDisqualified.size());     
+        
+    }
+    
+    @testSetup 
+    private static void setup() {
+        
+        // add test vacancies
+        List<Vacancy__c> vacancies = new List<Vacancy__c>();
+        for (Integer i = 0; i < 5; i++) {
+            Vacancy__c vacancy = new Vacancy__c(
+                Title__c = 'TestVacancy' + i,
+                Status__c = 'New');
+            vacancies.add(vacancy);
+        }
+        insert vacancies;
+        
+        // add test candidates
+        List<Candidate__c> candidates = new List<Candidate__c>();
+        for (Integer i = 0; i < 2; i++) {
+            Candidate__c candidate = new Candidate__c(
+                FirstName__c = 'TestCandidate' + i,
+                LastName__c = 'TestCandidate' + i, 
+                Location__c = 'Kyiv', 
+                Email__c = 'TestEmailCandidate@gmail.com'
+            );
+            candidates.add(candidate);
+        }
+        insert candidates;
+        
+        // add test junction vacancy-candidates
+        Vacancy__c vacancy = [SELECT Title__c FROM Vacancy__c WHERE Title__c = 'TestVacancy0' LIMIT 1];
+        Candidate__c candidate = [SELECT FirstName__c FROM Candidate__c WHERE FirstName__c LIKE 'TestCandidate%' AND Status__c != 'Disqualified' LIMIT 1];
+
+		Vacancy_Candidate__c vacancyCandidates = new Vacancy_Candidate__c(Vacancy__c = vacancy.Id, Candidate__c = candidate.Id);
+
+        insert vacancyCandidates;               
+    }
+    
+}
